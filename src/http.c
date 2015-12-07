@@ -1,5 +1,6 @@
 #include <slacks/http.h>
 #include <stdlib.h>
+#include <slacks/common.h>
 
 http_client*
 http_client_new(){
@@ -14,8 +15,20 @@ http_client_new(){
 
 static size_t
 writeData(void* buffer, size_t size, size_t nmemb, void* userp){
-    sstream_put((sstream*) userp, buffer, size * nmemb);
-    return size * nmemb;
+    size_t len = size * nmemb;
+    sstream* stream = userp;
+    if(stream->size + len > stream->asize){
+        sstream_grow(stream, stream->size + len);
+    }
+    memcpy(stream->data + stream->size, buffer, len);
+    stream->data[stream->size + len] = '\0';
+    stream->size += len;
+    return len;
+}
+
+char*
+http_encode(http_client* client, char* url){
+    return curl_easy_escape(client->curl, url, 0);
 }
 
 sstream*
@@ -28,7 +41,7 @@ http_get(http_client* client, char* url){
     curl_easy_setopt(client->curl, CURLOPT_WRITEDATA, buffer);
     res = curl_easy_perform(client->curl);
     if(res != CURLE_OK){
-        fprintf("Unable to perform curl operation: %s", curl_easy_strerror(res));
+        fprintf(stderr, "Unable to perform curl operation: %s", curl_easy_strerror(res));
         abort();
     }
     curl_easy_getinfo(client->curl, CURLINFO_RESPONSE_CODE, &client->code);

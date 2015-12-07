@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 #ifdef __cplusplus
 #define HEADER_BEGIN extern "C"{
@@ -66,6 +67,14 @@ sstream_puts(sstream* self, sstream* other){
 static inline void
 sstream_putstr(sstream* self, char* str){
     sstream_put(self, str, strlen(str));
+}
+
+static inline char*
+concat(char* str, char* str2){
+    char* res = malloc(strlen(str) + strlen(str2) + 1);
+    memcpy(res, str, strlen(str));
+    memcpy(res + strlen(str), str2, strlen(str2) + 1);
+    return res;
 }
 
 HEADER_END

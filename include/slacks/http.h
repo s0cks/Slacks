@@ -14,6 +14,7 @@ typedef struct{
 http_client* http_client_new();
 
 sstream* http_get(http_client* client, char* url);
+char* http_encode(http_client* client, char* url);
 
 HEADER_END
 
